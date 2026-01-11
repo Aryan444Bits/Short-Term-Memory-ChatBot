@@ -2,10 +2,27 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import {io} from "socket.io-client";
 
+// Typing indicator component
+const TypingIndicator = () => {
+  return (
+    <div className="message-wrapper bot-wrapper">
+      <div className="message bot-message typing-indicator">
+        <div className="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span className="typing-text">AI is typing...</span>
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [socket, setSocket] = useState(null)
   const [message, setMessage] = useState('')
   const [conversations, setConversations] = useState([])
+  const [isAiTyping, setIsAiTyping] = useState(false)
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -14,7 +31,7 @@ function App() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [conversations])
+  }, [conversations, isAiTyping])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -32,6 +49,9 @@ function App() {
         time: timestamp
       }])
 
+      // Show typing indicator
+      setIsAiTyping(true)
+
       socket.emit("ai-message", message)
 
       
@@ -44,6 +64,8 @@ function App() {
     setSocket(socketIns)
     
     socketIns.on("ai-message-response", (response) => {
+      // Hide typing indicator
+      setIsAiTyping(false)
       
       const botMessage = {
         id: Date.now()+1,
@@ -78,6 +100,7 @@ function App() {
             </div>
           </div>
         ))}
+        {isAiTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
 
