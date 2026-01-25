@@ -1,14 +1,26 @@
-const { GoogleGenAI } = require("@google/genai");
+const axios = require("axios");
 
-const ai = new GoogleGenAI({});
+async function generateResponse(messages) {
+    try {
+        const response = await axios.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+                model: "deepseek/deepseek-chat",
+                messages: messages,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
 
-async function generateResponse(chatHistory) {
-    const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: chatHistory,
-    })
-
-    return response.text;
+        return response.data.choices[0].message.content;
+    } catch (err) {
+        console.log(err.response?.data || err.message);
+        throw err;
+    }
 }
 
 module.exports = generateResponse;
